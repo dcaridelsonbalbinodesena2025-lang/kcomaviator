@@ -3,129 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora Automática - Meus Padrões</title>
+    <title>Calculadora Automática - v2</title>
     <style>
         :root { --verde: #2ecc71; --vermelho: #e74c3c; --azul: #3498db; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background: #0b0b0b; color: white; display: flex; flex-direction: column; align-items: center; padding: 15px; }
-        
-        /* Visor de Sinais */
         .visor-sinal { width: 100%; max-width: 450px; background: #151515; border: 2px solid #333; border-radius: 15px; padding: 20px; text-align: center; margin-bottom: 20px; }
-        .status-msg { font-size: 1.4rem; font-weight: bold; color: #888; }
-        .alerta-entrada { color: var(--verde); display: none; }
-
-        /* Grade de Velas */
+        .status-msg { font-size: 1.2rem; font-weight: bold; color: #888; }
         .grade { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; width: 100%; max-width: 450px; margin-bottom: 20px; }
         .vela { background: #222; height: 40px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: bold; }
         .v-azul { border: 2px solid #005f87; color: #00d2ff; }
         .v-roxo { border: 2px solid #6441a5; color: #d59fff; }
         .v-rosa { border: 2px solid #bf279b; color: #ff9de2; }
-
-        /* Área de Cadastro de Padrões */
         .area-cadastro { width: 100%; max-width: 450px; background: #1c1c1c; border-radius: 15px; padding: 20px; border: 1px solid #444; }
-        .area-cadastro h3 { margin-bottom: 15px; font-size: 1rem; color: var(--azul); }
-        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
-        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #555; background: #000; color: white; text-transform: uppercase; }
-        .btn-salvar { padding: 12px 20px; background: var(--azul); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
-        
-        .lista-padroes { background: #000; padding: 10px; border-radius: 8px; min-height: 40px; font-size: 0.8rem; color: #aaa; }
+        input { width: 60%; padding: 12px; border-radius: 8px; border: 1px solid #555; background: #000; color: white; text-transform: uppercase; }
+        button { padding: 12px 20px; background: var(--azul); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body onload="iniciar()">
-
-    <div class="visor-sinal" id="visor">
-        <div id="texto-status" class="status-msg">🔍 MONITORANDO VELAS...</div>
-        <div id="texto-entrada" class="status-msg alerta-entrada">🚨 ENTRADA CONFIRMADA! 🚨</div>
+    <div class="visor-sinal">
+        <div id="texto-status" class="status-msg">🔍 AGUARDANDO PRIMEIRA VELA...</div>
     </div>
-
-    <div class="grade" id="grade-velas">
-        </div>
-
+    <div class="grade" id="grade-velas"></div>
     <div class="area-cadastro">
-        <h3>📝 CADASTRAR MINHA ESTRATÉGIA</h3>
-        <div class="input-group">
-            <input type="text" id="meu-padrao" placeholder="EX: PPG" maxlength="6">
-            <button class="btn-salvar" onclick="cadastrar()">SALVAR</button>
-        </div>
-        <div style="font-size: 0.7rem; margin-bottom: 5px;">PADRÕES ATIVOS:</div>
-        <div class="lista-padroes" id="lista">Nenhum padrão cadastrado.</div>
+        <h3 style="font-size:0.9rem; margin-bottom:10px;">CADASTRAR ESTRATÉGIA:</h3>
+        <input type="text" id="meu-padrao" placeholder="EX: PPG">
+        <button onclick="cadastrar()">SALVAR</button>
+        <div id="lista" style="margin-top:10px; font-size:0.8rem; color:var(--azul);"></div>
     </div>
 
 <script>
     let historicoVelas = [];
-    let padroesUsuario = []; // Onde ficam os seus cadastros
+    let padroesUsuario = [];
     let ultimoID = 0;
-
-    // Conecta ao seu Telegram
-    const bot_token = "8044840096:AAEayqE2x4V8CD8Fgrdf97Me8nkw0RSWvcg";
-    const chat_id = "5692126478";
-
-    function cadastrar() {
-        const input = document.getElementById('meu-padrao');
-        const val = input.value.toUpperCase();
-        if(val.length > 0) {
-            padroesUsuario.push(val);
-            input.value = "";
-            atualizarListaInterface();
-        }
-    }
-
-    function atualizarListaInterface() {
-        const div = document.getElementById('lista');
-        div.innerHTML = padroesUsuario.join(" | ");
-    }
 
     async function buscarDados() {
         try {
-            const res = await fetch('https://kcomaviator.onrender.com/ultimo');
+            // O 'cache: no-store' obriga a pegar a vela que saiu agora no TipMiner
+            const res = await fetch('https://kcomaviator.onrender.com/ultimo', { cache: 'no-store' });
             const data = await res.json();
 
-            if (data.valor !== ultimoID && data.valor > 0) {
-                processarVela(data.valor);
+            if (data.valor > 0 && data.valor !== ultimoID) {
+                const tipo = data.valor >= 2.0 ? 'G' : 'P';
+                let cor = data.valor < 2.0 ? 'v-azul' : (data.valor < 10 ? 'v-roxo' : 'v-rosa');
+                
+                historicoVelas.unshift({v: data.valor.toFixed(2), t: tipo, c: cor});
+                if(historicoVelas.length > 21) historicoVelas.pop();
+                
                 ultimoID = data.valor;
+                document.getElementById('texto-status').innerText = "🟢 VELA RECEBIDA: " + data.valor + "x";
+                renderizar();
+                checar();
             }
-        } catch (e) { console.log("Erro na busca"); }
+        } catch (e) { document.getElementById('texto-status').innerText = "🔴 ERRO NO RENDER"; }
     }
 
-    function processarVela(valor) {
-        const tipo = valor >= 2.0 ? 'G' : 'P';
-        let cor = 'v-azul';
-        if(valor >= 2.0 && valor < 10) cor = 'v-roxo';
-        if(valor >= 10) cor = 'v-rosa';
-
-        historicoVelas.unshift({v: valor.toFixed(2), t: tipo, c: cor});
-        if(historicoVelas.length > 21) historicoVelas.pop();
-
-        renderizarGrade();
-        checarEstrategia();
+    function cadastrar() {
+        const val = document.getElementById('meu-padrao').value.toUpperCase();
+        if(val) { padroesUsuario.push(val); document.getElementById('lista').innerText = "ATIVOS: " + padroesUsuario.join(" | "); }
     }
 
-    function checarEstrategia() {
+    function checar() {
         const seq = historicoVelas.map(x => x.t).join('');
-        let gatilho = false;
-
         padroesUsuario.forEach(p => {
             if(seq.startsWith(p)) {
-                gatilho = true;
-                dispararAlerta(p);
+                document.getElementById('texto-status').innerHTML = "🚨 ENTRADA CONFIRMADA!";
+                document.getElementById('texto-status').style.color = "#2ecc71";
             }
         });
-
-        if(!gatilho) {
-            document.getElementById('texto-status').style.display = 'block';
-            document.getElementById('texto-entrada').style.display = 'none';
-        }
     }
 
-    function dispararAlerta(p) {
-        document.getElementById('texto-status').style.display = 'none';
-        document.getElementById('texto-entrada').style.display = 'block';
-        
-        // Envia para o Telegram
-        fetch(`https://api.telegram.org/bot${bot_token}/sendMessage?chat_id=${chat_id}&text=🔥 SINAL NO AVIATOR!\nPadrao: ${p}\nEntrar apos a vela atual!`);
-    }
-
-    function renderizarGrade() {
+    function renderizar() {
         const g = document.getElementById('grade-velas');
         g.innerHTML = '';
         for(let i=0; i<21; i++) {
@@ -134,10 +82,7 @@
         }
     }
 
-    function iniciar() {
-        renderizarGrade();
-        setInterval(buscarDados, 3000); // Busca do TipMiner via Render
-    }
+    function iniciar() { renderizar(); setInterval(buscarDados, 3000); }
 </script>
 </body>
 </html>
