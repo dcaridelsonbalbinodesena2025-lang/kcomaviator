@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviator Pro - Automático</title>
+    <style>
+        /* ESTE CÓDIGO É O QUE TIRA A TELA BRANCA */
+        :root { --cor-verde: #27ae60; --cor-vermelha: #c0392b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial Black', sans-serif; }
+        body { background: #000; color: white; display: flex; flex-direction: column; align-items: center; padding: 10px; }
+        .calculadora { width: 100%; max-width: 400px; background: #1a1a1a; border-radius: 15px; padding: 15px; border: 2px solid #333; }
+        .grade { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 15px 0; }
+        .vela { background: #333; height: 35px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; }
+        .v-azul { background: #003247; } .v-roxo { background: #6441a5; } .v-rosa { background: #bf279b; }
+        .visor { background: #000; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: var(--cor-verde); border: 1px solid #444; }
+        .status-robo { font-size: 0.7rem; text-align: center; margin-top: 10px; color: #888; }
+    </style>
+</head>
+<body onload="iniciar()">
+
+<div class="calculadora">
+    <div style="display:flex; justify-content: space-between; font-weight: bold;">
+        <span style="color:var(--cor-verde)">G: <span id="g-count">0</span></span>
+        <span id="robo-status">📡 A CONECTAR...</span>
+        <span style="color:var(--cor-vermelha)">R: <span id="r-count">0</span></span>
+    </div>
+
+    <div class="grade" id="grade"></div>
+    <div class="visor" id="visor-val">0.00</div>
+</div>
+
+<script>
+    let historico = [];
+    let ultimoValor = 0;
+    const ID_USUARIO = "5692126478"; // O teu ID da imagem
+
+    async function monitorar() {
+        try {
+            // Acede ao link que mostraste na imagem
+            const res = await fetch('https://kcomaviator.onrender.com/ultimo');
+            const data = await res.json();
+            document.getElementById('robo-status').innerText = "🟢 ROBÔ ONLINE";
+
+            if (data.valor !== ultimoValor && data.valor > 0) {
+                processarVela(data.valor);
+                ultimoValor = data.valor;
+            }
+        } catch (e) {
+            document.getElementById('robo-status').innerText = "🔴 ERRO DE LIGAÇÃO";
+        }
+    }
+
+    function processarVela(v) {
+        const cl = v < 2.0 ? 'v-azul' : (v < 10.0 ? 'v-roxo' : 'v-rosa');
+        historico.unshift({v: v.toFixed(2), cl: cl});
+        if(historico.length > 21) historico.pop();
+        
+        document.getElementById('visor-val').innerText = v.toFixed(2);
+        renderGrade();
+    }
+
+    function renderGrade() {
+        const g = document.getElementById('grade');
+        g.innerHTML = '';
+        for(let i=0; i<21; i++) {
+            const item = historico[i];
+            g.innerHTML += `<div class="vela ${item ? item.cl : ''}">${item ? item.v : ''}</div>`;
+        }
+    }
+
+    function iniciar() {
+        renderGrade();
+        setInterval(monitorar, 3000); // Verifica novos dados a cada 3 segundos
+    }
+</script>
+</body>
+</html>
