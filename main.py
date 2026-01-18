@@ -1,52 +1,31 @@
 import os
 import requests
-import time
 from flask import Flask, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
 
-# CONFIGURAÇÃO DO SEU TELEGRAM
-TOKEN = "8044840096:AAEayqE2x4V8CD8Fgrdf97Me8nkw0RSWvcg"
-CHAT_ID = "5692126478"
-
-# Variável para armazenar a última vela capturada
-ultima_vela_detectada = 0.0
-
-def enviar_telegram(mensagem):
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={CHAT_ID}&text={mensagem}"
-    try:
-        requests.get(url)
-    except:
-        pass
+ultima_vela = 0.0
 
 @app.route('/ultimo')
 def ultimo():
-    global ultima_vela_detectada
-    
+    global ultima_vela
     try:
-        # Aqui o robô tenta ler a API do TipMiner ou EstrelaBet
-        # Como o Playwright trava no seu Render, usamos este método leve:
+        # Busca real no TipMiner (Substitua pela sua URL de API se tiver)
+        # Se a API falhar, este código evita que o Render caia
         response = requests.get("https://api.tipminer.com/api/v1/games/aviator/history", timeout=5)
-        dados = response.json()
-        
-        # Pega a vela mais recente da lista
-        vela_atual = float(dados['data'][0]['result'])
-        
-        if vela_atual != ultima_vela_detectada:
-            ultima_vela_detectada = vela_atual
-            # Opcional: Avisar no Telegram que capturou uma nova
-            # enviar_telegram(f"Vela detectada: {vela_atual}x")
-            
-        return jsonify({"valor": ultima_vela_detectada})
+        if response.status_code == 200:
+            dados = response.json()
+            ultima_vela = float(dados['data'][0]['result'])
     except:
-        # Se a API falhar, ele retorna o último valor conhecido
-        return jsonify({"valor": ultima_vela_detectada})
+        pass # Mantém o valor antigo se houver erro de conexão
+        
+    return jsonify({"valor": ultima_vela})
 
 @app.route('/')
 def home():
-    return "Robo Ativo e Monitorando TipMiner!"
+    return "Robo Conectado"
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
