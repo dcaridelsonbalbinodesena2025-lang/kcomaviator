@@ -1,189 +1,81 @@
-<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aviator Pro - Inteligência Automática</title>
+    <title>Aviator Pro - Automático</title>
     <style>
-        :root {
-            --aviator-azul: #3498db; --aviator-roxo: #9b59b6; --aviator-rosa: #e91e63;
-            --cor-verde: #27ae60; --cor-vermelha: #c0392b; --cor-alerta: #f1c40f;
-        }
+        :root { --verde: #27ae60; --vermelho: #c0392b; --azul: #3498db; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial Black', sans-serif; }
-        body { background: #000; color: white; display: flex; flex-direction: column; align-items: center; height: 100vh; }
-
-        .topo-info { display: flex; width: 100%; height: 45px; background: #111; border-bottom: 2px solid #333; }
-        .placar-geral { width: 50%; display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 1.2rem; border-right: 1px solid #333; }
-        .cronometro-box { width: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; }
-
-        .calculadora { width: 95vw; max-width: 460px; background: #1a1a1a; border-radius: 20px; border: 2px solid #333; padding: 12px; margin-top: 10px; }
-        .status-robo-barra { font-size: 0.7rem; text-align: center; margin-bottom: 5px; color: #888; font-weight: bold; }
-
-        .tendencia-box { background: #000; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--aviator-azul); display: flex; justify-content: space-between; }
-        .grade { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: #000; padding: 8px; border-radius: 10px; margin-bottom: 8px; }
-        .vela { background: #222; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; height: 32px; font-weight: bold; border: 1px solid transparent; }
+        body { background: #000; color: white; display: flex; flex-direction: column; align-items: center; padding: 10px; }
+        .calculadora { width: 100%; max-width: 450px; background: #1a1a1a; border-radius: 20px; border: 2px solid #333; padding: 15px; }
+        .status-topo { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; }
+        .grade { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 15px; }
+        .vela { background: #333; height: 35px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; }
         .v-azul { background: #003247; } .v-roxo { background: #6441a5; } .v-rosa { background: #bf279b; }
-
-        .painel-status { background: #000; padding: 12px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #333; min-height: 80px; }
-        .visor { background: #000; border: 1px solid #333; border-radius: 10px; height: 50px; display: flex; align-items: center; justify-content: center; color: var(--cor-verde); font-size: 2rem; margin-bottom: 10px; }
-
-        .teclado-grid { display: grid; grid-template-columns: repeat(3, 1fr) 1.2fr; gap: 6px; }
-        .btn-n { background: #333; color: white; border: none; border-radius: 8px; font-size: 1.6rem; height: 55px; font-weight: bold; }
-        .btn-acao { background: #444; color: white; border: none; border-radius: 8px; font-weight: bold; }
-        .btn-entrar { grid-area: span 2; background: var(--cor-verde); color: #000; font-size: 1.2rem; border-radius: 8px; border: none; font-weight: bold; }
-        .btn-c { background: var(--cor-vermelha); color: white; border: none; border-radius: 8px; font-size: 1.6rem; font-weight: bold; }
-
-        .balao-p { background: #333; padding: 2px 5px; border-radius: 4px; margin-right: 2px; }
-        .balao-g { background: var(--cor-verde); padding: 2px 5px; border-radius: 4px; margin-right: 2px; color: black; }
+        .visor { background: #000; height: 60px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--verde); border: 1px solid #444; margin-bottom: 15px; }
+        .teclado { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .btn { background: #333; color: white; border: none; padding: 15px; border-radius: 10px; font-size: 1.5rem; font-weight: bold; }
+        .btn-c { background: var(--vermelho); }
+        .btn-g { background: var(--verde); grid-column: span 2; }
     </style>
 </head>
-<body onload="carregarTudo()">
-
-<div class="topo-info">
-    <div class="placar-geral">
-        <div style="color: #00FF00;">G: <span id="count-g-geral">0</span></div>
-        <div style="color: #FF6347;">R: <span id="count-r-geral">0</span></div>
+<body onload="iniciar()">
+    <div class="calculadora">
+        <div class="status-topo">
+            <span style="color:var(--verde)">G: 0</span>
+            <span id="robo-status" style="color: #888;">📡 CONECTANDO...</span>
+            <span style="color:var(--vermelho)">R: 0</span>
+        </div>
+        <div class="grade" id="grade"></div>
+        <div class="visor" id="visor-val">0.00</div>
+        <div class="teclado">
+            <button class="btn" onclick="add('7')">7</button><button class="btn" onclick="add('8')">8</button><button class="btn" onclick="add('9')">9</button>
+            <button class="btn" onclick="add('4')">4</button><button class="btn" onclick="add('5')">5</button><button class="btn" onclick="add('6')">6</button>
+            <button class="btn" onclick="add('1')">1</button><button class="btn" onclick="add('2')">2</button><button class="btn" onclick="add('3')">3</button>
+            <button class="btn-c" onclick="limpar()">C</button><button class="btn-g" onclick="confirmar()">ENTRAR</button>
+        </div>
     </div>
-    <div class="cronometro-box">
-        <span id="display-crono">00:00:00</span>
-    </div>
-</div>
-
-<div class="calculadora">
-    <div class="status-robo-barra" id="robo-status">📡 CONECTANDO AO RENDER...</div>
-
-    <div class="tendencia-box">
-        <div><small style="color: #888;">TENDÊNCIA:</small><br><span id="tend-txt" style="font-weight: bold;">AGUARDANDO...</span></div>
-        <div style="text-align: right;"><small style="color: #888;">FORÇA G:</small><br><span id="tend-forca" style="color: var(--cor-verde); font-weight: bold; font-size: 1.2rem;">0%</span></div>
-    </div>
-
-    <div class="grade" id="grade"></div>
-
-    <div class="painel-status">
-        <span id="status-display" style="color: var(--cor-verde); display: block; text-align: center; font-weight: bold;">ANALISANDO...</span>
-        <div id="lista-ativa" style="margin-top: 10px;"></div>
-    </div>
-
-    <div class="visor" id="visor-val">0.00</div>
-
-    <div class="teclado-grid">
-        <button class="btn-n" onclick="add('7')">7</button>
-        <button class="btn-n" onclick="add('8')">8</button>
-        <button class="btn-n" onclick="add('9')">9</button>
-        <button class="btn-acao" onclick="abrirConfig()">⚙️</button>
-        
-        <button class="btn-n" onclick="add('4')">4</button>
-        <button class="btn-n" onclick="add('5')">5</button>
-        <button class="btn-n" onclick="add('6')">6</button>
-        <button class="btn-entrar" onclick="confirmar()">ENTRAR</button>
-        
-        <button class="btn-n" onclick="add('1')">1</button>
-        <button class="btn-n" onclick="add('2')">2</button>
-        <button class="btn-n" onclick="add('3')">3</button>
-        
-        <button class="btn-n" onclick="add('0')">0</button>
-        <button class="btn-n" onclick="add('.')">.</button>
-        <button class="btn-c" onclick="limpar()">C</button>
-    </div>
-</div>
 
 <script>
-    let historico = [], digitacao = "", meusPadroes = [{p: "PPG", ciclo: 0, w: 0, r: 0}];
-    let ultimoValorLido = 0;
-    const URL_ROBO = 'https://kcomaviator.onrender.com/ultimo';
+    let historico = [], digitacao = "", ultimoValor = 0;
+    const URL = 'https://kcomaviator.onrender.com/ultimo';
 
-    async function monitorarRobo() {
+    async function monitorar() {
         try {
-            // Usando cache: 'no-store' para garantir dados novos
-            const response = await fetch(URL_ROBO, { cache: 'no-store' });
-            if (!response.ok) throw new Error();
-            const data = await response.json();
-            
-            document.getElementById('robo-status').innerHTML = "🟢 ONLINE (ESTRELA)";
-            document.getElementById('robo-status').style.color = "#00ff00";
-
-            if (data.valor !== ultimoValorLido && data.valor > 0) {
-                digitacao = data.valor.toString();
-                document.getElementById('visor-val').innerText = digitacao;
-                confirmar();
-                ultimoValorLido = data.valor;
+            const res = await fetch(URL);
+            const data = await res.json();
+            document.getElementById('robo-status').innerText = "🟢 ONLINE";
+            if (data.valor !== ultimoValor && data.valor > 0) {
+                processar(data.valor);
+                ultimoValor = data.valor;
             }
         } catch (e) {
-            document.getElementById('robo-status').innerHTML = "🔴 ERRO: ACORDANDO SERVIDOR...";
-            document.getElementById('robo-status').style.color = "red";
+            document.getElementById('robo-status').innerText = "🔴 ACORDANDO SERVIDOR...";
         }
     }
 
-    function carregarTudo() {
-        renderGrade();
-        atualizarPainel();
-        setInterval(monitorarRobo, 3000);
+    function processar(v) {
+        const cl = v < 2.0 ? 'v-azul' : (v < 10.0 ? 'v-roxo' : 'v-rosa');
+        historico.unshift({v: v.toFixed(2), cl: cl});
+        if(historico.length > 21) historico.pop();
+        document.getElementById('visor-val').innerText = v.toFixed(2);
+        render();
+    }
+
+    function render() {
+        const g = document.getElementById('grade');
+        g.innerHTML = '';
+        for(let i=0; i<21; i++) {
+            const item = historico[i];
+            g.innerHTML += `<div class="vela ${item ? item.cl : ''}">${item ? item.v : ''}</div>`;
+        }
     }
 
     function add(n) { digitacao += n; document.getElementById('visor-val').innerText = digitacao; }
     function limpar() { digitacao = ""; document.getElementById('visor-val').innerText = "0.00"; }
-
-    function confirmar() {
-        if(!digitacao || digitacao === ".") return;
-        const v = parseFloat(digitacao);
-        const t = v >= 2.0 ? 'G' : 'P';
-        let cl = v < 2.0 ? 'v-azul' : (v < 10.0 ? 'v-roxo' : 'v-rosa');
-
-        historico.unshift({v: v.toFixed(2), t: t, c: cl});
-        if(historico.length > 21) historico.pop();
-
-        verificarPadroes();
-        renderGrade();
-        atualizarTendencia();
-        limpar();
-    }
-
-    function verificarPadroes() {
-        const seq = historico.map(h => h.t).join('');
-        meusPadroes.forEach(item => {
-            if(seq.startsWith(item.p)) {
-                item.ciclo++;
-                document.getElementById('status-display').innerText = "SINAL IDENTIFICADO!";
-            }
-        });
-        atualizarPainel();
-    }
-
-    function renderGrade() {
-        const g = document.getElementById('grade');
-        g.innerHTML = '';
-        for(let i=0; i<21; i++) {
-            const v = historico[i];
-            g.innerHTML += `<div class="vela ${v ? v.c : ''}">${v ? v.v : ''}</div>`;
-        }
-    }
-
-    function atualizarPainel() {
-        const l = document.getElementById('lista-ativa');
-        l.innerHTML = '';
-        meusPadroes.forEach(item => {
-            const balaos = item.p.split('').map(char => `<span class="balao-${char.toLowerCase()}">${char}</span>`).join('');
-            l.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:8px; background:#111; padding:5px; border-radius:8px;">
-                <div>${balaos}</div>
-                <div>Ciclos: ${item.ciclo}/4</div>
-            </div>`;
-        });
-    }
-
-    function atualizarTendencia() {
-        if(historico.length < 3) return;
-        const gs = historico.slice(0, 10).filter(h => h.t === 'G').length;
-        document.getElementById('tend-forca').innerText = (gs * 10) + "%";
-        document.getElementById('tend-txt').innerText = gs >= 5 ? "SURF ALTA" : "SURF BAIXA";
-    }
-
-    function abrirConfig() {
-        const p = prompt("Digite o novo padrão (Ex: PPGP):");
-        if(p) {
-            meusPadroes.push({p: p.toUpperCase(), ciclo: 0, w: 0, r: 0});
-            atualizarPainel();
-        }
-    }
+    function confirmar() { if(digitacao) processar(parseFloat(digitacao)); limpar(); }
+    function iniciar() { render(); setInterval(monitorar, 3000); }
 </script>
 </body>
 </html>
