@@ -3,79 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aviator Pro - Automático</title>
+    <title>Calculadora Automática - Meus Padrões</title>
     <style>
-        :root { --verde: #27ae60; --vermelho: #c0392b; --azul: #3498db; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial Black', sans-serif; }
-        body { background: #000; color: white; display: flex; flex-direction: column; align-items: center; padding: 10px; }
-        .calculadora { width: 100%; max-width: 450px; background: #1a1a1a; border-radius: 20px; border: 2px solid #333; padding: 15px; }
-        .status-topo { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; }
-        .grade { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 15px; }
-        .vela { background: #333; height: 35px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; }
-        .v-azul { background: #003247; } .v-roxo { background: #6441a5; } .v-rosa { background: #bf279b; }
-        .visor { background: #000; height: 60px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--verde); border: 1px solid #444; margin-bottom: 15px; }
-        .teclado { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .btn { background: #333; color: white; border: none; padding: 15px; border-radius: 10px; font-size: 1.5rem; font-weight: bold; }
-        .btn-c { background: var(--vermelho); }
-        .btn-g { background: var(--verde); grid-column: span 2; }
+        :root { --verde: #2ecc71; --vermelho: #e74c3c; --azul: #3498db; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #0b0b0b; color: white; display: flex; flex-direction: column; align-items: center; padding: 15px; }
+        
+        /* Visor de Sinais */
+        .visor-sinal { width: 100%; max-width: 450px; background: #151515; border: 2px solid #333; border-radius: 15px; padding: 20px; text-align: center; margin-bottom: 20px; }
+        .status-msg { font-size: 1.4rem; font-weight: bold; color: #888; }
+        .alerta-entrada { color: var(--verde); display: none; }
+
+        /* Grade de Velas */
+        .grade { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; width: 100%; max-width: 450px; margin-bottom: 20px; }
+        .vela { background: #222; height: 40px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: bold; }
+        .v-azul { border: 2px solid #005f87; color: #00d2ff; }
+        .v-roxo { border: 2px solid #6441a5; color: #d59fff; }
+        .v-rosa { border: 2px solid #bf279b; color: #ff9de2; }
+
+        /* Área de Cadastro de Padrões */
+        .area-cadastro { width: 100%; max-width: 450px; background: #1c1c1c; border-radius: 15px; padding: 20px; border: 1px solid #444; }
+        .area-cadastro h3 { margin-bottom: 15px; font-size: 1rem; color: var(--azul); }
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #555; background: #000; color: white; text-transform: uppercase; }
+        .btn-salvar { padding: 12px 20px; background: var(--azul); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
+        
+        .lista-padroes { background: #000; padding: 10px; border-radius: 8px; min-height: 40px; font-size: 0.8rem; color: #aaa; }
     </style>
 </head>
 <body onload="iniciar()">
-    <div class="calculadora">
-        <div class="status-topo">
-            <span style="color:var(--verde)">G: 0</span>
-            <span id="robo-status" style="color: #888;">📡 CONECTANDO...</span>
-            <span style="color:var(--vermelho)">R: 0</span>
+
+    <div class="visor-sinal" id="visor">
+        <div id="texto-status" class="status-msg">🔍 MONITORANDO VELAS...</div>
+        <div id="texto-entrada" class="status-msg alerta-entrada">🚨 ENTRADA CONFIRMADA! 🚨</div>
+    </div>
+
+    <div class="grade" id="grade-velas">
         </div>
-        <div class="grade" id="grade"></div>
-        <div class="visor" id="visor-val">0.00</div>
-        <div class="teclado">
-            <button class="btn" onclick="add('7')">7</button><button class="btn" onclick="add('8')">8</button><button class="btn" onclick="add('9')">9</button>
-            <button class="btn" onclick="add('4')">4</button><button class="btn" onclick="add('5')">5</button><button class="btn" onclick="add('6')">6</button>
-            <button class="btn" onclick="add('1')">1</button><button class="btn" onclick="add('2')">2</button><button class="btn" onclick="add('3')">3</button>
-            <button class="btn-c" onclick="limpar()">C</button><button class="btn-g" onclick="confirmar()">ENTRAR</button>
+
+    <div class="area-cadastro">
+        <h3>📝 CADASTRAR MINHA ESTRATÉGIA</h3>
+        <div class="input-group">
+            <input type="text" id="meu-padrao" placeholder="EX: PPG" maxlength="6">
+            <button class="btn-salvar" onclick="cadastrar()">SALVAR</button>
         </div>
+        <div style="font-size: 0.7rem; margin-bottom: 5px;">PADRÕES ATIVOS:</div>
+        <div class="lista-padroes" id="lista">Nenhum padrão cadastrado.</div>
     </div>
 
 <script>
-    let historico = [], digitacao = "", ultimoValor = 0;
-    const URL = 'https://kcomaviator.onrender.com/ultimo';
+    let historicoVelas = [];
+    let padroesUsuario = []; // Onde ficam os seus cadastros
+    let ultimoID = 0;
 
-    async function monitorar() {
-        try {
-            const res = await fetch(URL);
-            const data = await res.json();
-            document.getElementById('robo-status').innerText = "🟢 ONLINE";
-            if (data.valor !== ultimoValor && data.valor > 0) {
-                processar(data.valor);
-                ultimoValor = data.valor;
-            }
-        } catch (e) {
-            document.getElementById('robo-status').innerText = "🔴 ACORDANDO SERVIDOR...";
+    // Conecta ao seu Telegram
+    const bot_token = "8044840096:AAEayqE2x4V8CD8Fgrdf97Me8nkw0RSWvcg";
+    const chat_id = "5692126478";
+
+    function cadastrar() {
+        const input = document.getElementById('meu-padrao');
+        const val = input.value.toUpperCase();
+        if(val.length > 0) {
+            padroesUsuario.push(val);
+            input.value = "";
+            atualizarListaInterface();
         }
     }
 
-    function processar(v) {
-        const cl = v < 2.0 ? 'v-azul' : (v < 10.0 ? 'v-roxo' : 'v-rosa');
-        historico.unshift({v: v.toFixed(2), cl: cl});
-        if(historico.length > 21) historico.pop();
-        document.getElementById('visor-val').innerText = v.toFixed(2);
-        render();
+    function atualizarListaInterface() {
+        const div = document.getElementById('lista');
+        div.innerHTML = padroesUsuario.join(" | ");
     }
 
-    function render() {
-        const g = document.getElementById('grade');
+    async function buscarDados() {
+        try {
+            const res = await fetch('https://kcomaviator.onrender.com/ultimo');
+            const data = await res.json();
+
+            if (data.valor !== ultimoID && data.valor > 0) {
+                processarVela(data.valor);
+                ultimoID = data.valor;
+            }
+        } catch (e) { console.log("Erro na busca"); }
+    }
+
+    function processarVela(valor) {
+        const tipo = valor >= 2.0 ? 'G' : 'P';
+        let cor = 'v-azul';
+        if(valor >= 2.0 && valor < 10) cor = 'v-roxo';
+        if(valor >= 10) cor = 'v-rosa';
+
+        historicoVelas.unshift({v: valor.toFixed(2), t: tipo, c: cor});
+        if(historicoVelas.length > 21) historicoVelas.pop();
+
+        renderizarGrade();
+        checarEstrategia();
+    }
+
+    function checarEstrategia() {
+        const seq = historicoVelas.map(x => x.t).join('');
+        let gatilho = false;
+
+        padroesUsuario.forEach(p => {
+            if(seq.startsWith(p)) {
+                gatilho = true;
+                dispararAlerta(p);
+            }
+        });
+
+        if(!gatilho) {
+            document.getElementById('texto-status').style.display = 'block';
+            document.getElementById('texto-entrada').style.display = 'none';
+        }
+    }
+
+    function dispararAlerta(p) {
+        document.getElementById('texto-status').style.display = 'none';
+        document.getElementById('texto-entrada').style.display = 'block';
+        
+        // Envia para o Telegram
+        fetch(`https://api.telegram.org/bot${bot_token}/sendMessage?chat_id=${chat_id}&text=🔥 SINAL NO AVIATOR!\nPadrao: ${p}\nEntrar apos a vela atual!`);
+    }
+
+    function renderizarGrade() {
+        const g = document.getElementById('grade-velas');
         g.innerHTML = '';
         for(let i=0; i<21; i++) {
-            const item = historico[i];
-            g.innerHTML += `<div class="vela ${item ? item.cl : ''}">${item ? item.v : ''}</div>`;
+            const v = historicoVelas[i];
+            g.innerHTML += `<div class="vela ${v ? v.c : ''}">${v ? v.v : ''}</div>`;
         }
     }
 
-    function add(n) { digitacao += n; document.getElementById('visor-val').innerText = digitacao; }
-    function limpar() { digitacao = ""; document.getElementById('visor-val').innerText = "0.00"; }
-    function confirmar() { if(digitacao) processar(parseFloat(digitacao)); limpar(); }
-    function iniciar() { render(); setInterval(monitorar, 3000); }
+    function iniciar() {
+        renderizarGrade();
+        setInterval(buscarDados, 3000); // Busca do TipMiner via Render
+    }
 </script>
 </body>
 </html>
