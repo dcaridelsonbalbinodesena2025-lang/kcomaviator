@@ -1,18 +1,22 @@
+import os
 from flask import Flask, jsonify
-from flask_cors import CORS # Importante para não dar erro de bloqueio
+from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app) # Isso permite que o GitHub fale com o Render sem bloqueios
+CORS(app)
 
-ultima_vela = 0.0 # Aqui o seu robô vai guardar a vela do TipMiner
-
-@app.route('/ultimo')
-def pegar_vela():
-    return jsonify({"valor": ultima_vela})
+# Valor inicial
+ultima_vela = 0.0
 
 @app.route('/')
 def home():
-    return "Robô Ativo! Use /ultimo para ver os dados."
+    return "Robo Online - Use /ultimo para dados"
+
+@app.route('/ultimo')
+def get_ultimo():
+    return jsonify({"valor": ultima_vela})
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    # O Render exige que usemos a porta que ele fornece
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
